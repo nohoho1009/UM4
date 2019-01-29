@@ -53,13 +53,13 @@ func_to_int = lambda x: x.total_seconds()
 feature_u["finishing_time"] = feature_u.finishing_time.apply(func_to_int)
 
 # 距離ごとの平均時間を算出
-a = feature_u[["distance", "finishing_time"]]
-time_analyze = a.groupby("distance").agg({"finishing_time": ["count", "mean", "median", "std", "min", "max"]})[
+a = feature_u[["distance", "surface", "finishing_time"]]
+time_analyze = a.groupby(["distance", "surface"]).agg({"finishing_time": ["count", "mean", "median", "std", "min", "max"]})[
     "finishing_time"]
 # %%
 # 過去の速度レートを追加
 
-func_timedelta = lambda x: x.finishing_time - time_analyze.loc[x.distance]["mean"]
+func_timedelta = lambda x: x.finishing_time - time_analyze.loc[x.distance, x.surface]["mean"]
 feature_u["sp_rate"] = feature_u.apply(func_timedelta, axis=1)
 
 for id in feature_u.horse_id.unique():
@@ -68,6 +68,22 @@ for id in feature_u.horse_id.unique():
     feature_u.loc[feature_u.horse_id == id, "sumSprate4"] = feature_u[feature_u.horse_id == id].sp_rate.shift(1).rolling(4,
                                                                                                            min_periods=1).sum()
     feature_u.loc[feature_u.horse_id == id, "preSprate"] = feature_u[feature_u.horse_id == id].sp_rate.shift(1)
+    feature_u.loc[feature_u.horse_id == id, "raceCnt"] = feature_u[feature_u.horse_id == id].age.shift(1).rolling(100, min_periods=1).count()
+    feature_u.loc[feature_u.horse_id == id, "winCnt"] = feature_u[feature_u.horse_id == id].Top1.shift(1).rolling(100, min_periods=1).sum()
+
+feature_u = feature_u[['race_id', 'order_of_finish', 'horse_number', 'grade', 'horse_id',
+       'jockey_id', 'trainer_id', 'age', 'dhweight',
+       'disRoc', 'distance', 'enterTimes', 'eps', 'hweight',
+       'jwinper', 'odds', 'owinper', 'sex', 'surface',
+       'twinper', 'weather', 'weight', 'winRun', 'jEps',
+       'preOOF', 'pre2OOF', 'month', 'ridingStrongJockey',
+       'runningStyle', 'preLateStart', 'preLastPhase', 'lateStartPer',
+       'course', 'placeCode', 'headCount', 'preHeadCount', 'surfaceChanged',
+       'gradeChanged', 'preMargin', 'femaleOnly', 'avgTop3_4',  'avgWin4',
+       'preRaceWin', 'preRaceTop3', 'jAvgTop3_4', 'jAvgWin4',
+       'avgSprate4', 'sumSprate4', 'preSprate', 'raceCnt', 'winCnt']]
+
+feature_u.to_csv("data/feature_update.csv", encoding="Shift-JIS", index=False)
 # %%
 # 速度レートを整数に変更（グループ毎に集計したい）
 feature_u["avgSprate4_int"] = feature_u.avgSprate4.fillna(0).apply(int)
