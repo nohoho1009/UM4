@@ -1,4 +1,4 @@
-##各ファイル説明
+## 各ファイル説明
 - create_fuature.py
     - 学習用の特徴量作成プログラム。ほかのプログラム動かす前に一回これを動かす。
 - io_utility.py
@@ -26,7 +26,7 @@
 - notebooks/note1.ipynb
     - 10年分のデータ傾向とか
     
-##必要な環境とか
+## 必要な環境とか
 - keras
 - keras RL
 - scikit-learn
