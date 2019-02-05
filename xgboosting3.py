@@ -8,8 +8,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score
 import pandas as pd
-# xgboostingの特徴量からオッズを消去した版
-# 的中率25%　払い戻し率35%
+# 2値分類ではなく勝率予想（1着になるか否か）に変更
+# また購入の判定をオッズ　×　勝率で期待値を上回った場合に購入
 
 xgb.__version__
 # '0.4'

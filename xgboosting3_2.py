@@ -9,8 +9,10 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score
 import pandas as pd
 
-# 相対パラメータ追加
-# 的中率25%　払い戻し率35%
+# 2値分類ではなく勝率予想（1着になるか否か）に変更
+# また購入の判定をオッズ　×　勝率で期待値を上回った場合に購入
+# xgboosting3で超高額馬券を購入しまくる時が多かったため、ある程度の勝率を持つものに購入を制限
+
 
 xgb.__version__
 # '0.4'
