@@ -30,10 +30,14 @@
     - 10年分のデータ傾向とか
     
 ## 必要な環境とか
-- keras
-- keras RL
 - scikit-learn
+    - 必須
 - xgboosting
+    - 必須
+- keras
+    - うんこを動かすのに必要
+- keras RL
+    - うんこを動かすのに必要
 
 ## 参考文献
 - http://stockedge.hatenablog.com/entry/2016/01/03/103428
