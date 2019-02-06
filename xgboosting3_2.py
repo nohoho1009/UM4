@@ -30,6 +30,7 @@ insi = ['horse_number', 'grade', 'odds',
 train_data, train_label, test_data, test_label = io_utility.ReadData(insi, traningdata_rate=0.9)
 
 # %%
+# データセットの設定と学習時のハイパーパラメータ設定
 dm = xgb.DMatrix(train_data.values, label=train_label)
 
 np.random.seed(1)
@@ -39,37 +40,43 @@ params = {'objective': 'multi:softprob',
           'eta': 0.2,
           'num_class': 2}
 
+# 学習開始
 bst = xgb.train(params, dm, num_boost_round=18)
 # %%
+# テストデータ（2016/4～2017/4）で試す
 dm = xgb.DMatrix(test_data.values, label=test_label)
 ypred = pd.DataFrame(bst.predict(dm))
 # %%
-
+# 各特徴量の重要度をみる
 mapper = {'f{0}'.format(i): v for i, v in enumerate(insi)}
 mapped = {mapper[k]: v for k, v in bst.get_fscore().items()}
 mapped
-# {'petal length (cm)': 95,
-#  'petal width (cm)': 59,
-#  'sepal length (cm)': 17,
-#  'sepal width (cm)': 16}
 
 xgb.plot_importance(mapped)
 
 # %%
+# 答えと予想勝率を結合
 result = pd.concat([test_data, ypred, test_label], axis=1)
 result = result[["order_of_finish", "odds", 1]]
 result = result.rename(columns={"order_of_finish": "ans", 1: "predict"})
+
+# 予想勝率とオッズの積を作成
 result["odds_predict"] = result.odds * result.predict
 
+# 予想勝率×オッズが一定値以上かつ予想勝率が一定値以上のとき買うもの（1とする）としたアルゴリズム
 func = lambda x: 1 if (x.predict > 0.3) & (x.odds_predict > 1.2) else 0
-
 result["pre2"] = result.apply(func, axis=1)
 
+# 購入回数
 buyCnt = result.pre2.sum()
 
+# 払い戻し額合計
 ret = result[(result.pre2 ==1) & (result.ans==1)].odds.sum()
 
+# 払い戻し率
 returnRate = ret / buyCnt
+
+# 的中率
 hitRate = result[(result.pre2 ==1) & (result.ans==1)].odds.count() / buyCnt
 
 print("買い目")

@@ -1,9 +1,31 @@
 import pandas as pd
 
-def ReadData(insi, traningdata_rate):
-    # データの読み込みとクレンジング
-    feature = pd.read_csv("data/feature_update.csv", encoding="shift-jis")
 
+def ReadData(insi, traningdata_rate=0.9):
+    """
+    データ読み込みとクレンジングを行い、トレーニングデータとテストデータを分離して返す。
+
+    Parameters
+    ----------
+    insi : list[string]
+        読みこんだデータセットの中で使用する特徴量の配列。
+    traningdata_rate : double
+        トレーニングに使う割合。0.9なら9割をトレーニングデータとして返し、残り1割をテストデータとして返す。
+
+    Returns
+    ----------
+    train_data : DataFrame
+        トレーニングに使うデータフレーム。
+    train_label : Series
+        train_dataの回答。
+    test_data : DtaFrame
+        テストに使うデータフレーム。
+    test_label : Series
+        test_dataの回答。
+    """
+
+    # データ読み込みとクレンジング
+    feature = pd.read_csv("data/feature_update.csv", encoding="shift-jis")
     feature = feature.fillna(0)
 
     feature.weather = feature.weather.replace("曇", 0)
@@ -35,4 +57,4 @@ def ReadData(insi, traningdata_rate):
     train_data = train_data[insi]
     test_data = test_data[insi]
 
-    return train_data,train_label,test_data,test_label
+    return train_data, train_label, test_data, test_label
