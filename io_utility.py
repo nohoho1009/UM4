@@ -59,7 +59,7 @@ def ReadData(insi, traningdata_rate=0.9):
 
     return train_data, train_label, test_data, test_label
 
-def ReadData2(insi, traningdata_rate=0.9, max_popularity=6):
+def ReadData_WithoutLowPopularity(insi, traningdata_rate=0.9, max_popularity=6):
     """
     データ読み込みとクレンジングを行い、トレーニングデータとテストデータを分離して返す。
     データセットに使う人気の上限を設け、これ以上のデータはトレーニング、テストから抜く仕様。
@@ -119,5 +119,60 @@ def ReadData2(insi, traningdata_rate=0.9, max_popularity=6):
 
     train_data = train_data[insi]
     test_data = test_data[insi]
+
+    return train_data, train_label, test_data, test_label
+
+
+def ReadData_Race(traningdata_rate=0.9):
+    insi = ["race_id", 'horse_number', 'odds', 'age', 'dhweight', 'disRoc',
+            'enterTimes', 'eps', 'hweight', 'jwinper', 'owinper', 'sex',
+            'twinper', 'weight', 'jEps', 'preOOF',
+            'pre2OOF', 'ridingStrongJockey', 'runningStyle',
+            'surfaceChanged', 'gradeChanged',
+            'avgTop3_4', 'avgWin4', 'preRaceWin',
+            'preRaceTop3', 'jAvgTop3_4', 'jAvgWin4', 'avgSprate4', 'sumSprate4',
+            'preSprate', 'winCnt', "avgSprate4_relative", "sumSprate4_relative", "jEps_relative", "eps_relative",
+            "preSprate_relative", "winCnt_relative", "headCount", "popularity", "order_of_finish"]
+
+    insi2 = ['horse_number', 'odds', 'age', 'dhweight', 'disRoc',
+            'enterTimes', 'eps', 'hweight', 'jwinper', 'owinper', 'sex',
+            'twinper', 'weight', 'jEps', 'preOOF',
+            'pre2OOF', 'ridingStrongJockey', 'runningStyle',
+            'surfaceChanged', 'gradeChanged',
+            'avgTop3_4', 'avgWin4', 'preRaceWin',
+            'preRaceTop3', 'jAvgTop3_4', 'jAvgWin4', 'avgSprate4', 'sumSprate4',
+            'preSprate', 'winCnt', "avgSprate4_relative", "sumSprate4_relative", "jEps_relative", "eps_relative",
+            "preSprate_relative", "winCnt_relative", "headCount"]
+
+    max_popularity = 6
+
+    # データ読み込みとクレンジング
+    feature = pd.read_csv("data/feature_update.csv", encoding="shift-jis")
+    feature = feature[feature.popularity <= max_popularity]
+    feature = feature[insi]
+    feature = feature.fillna(0)
+
+    feature.sex = feature.sex.replace("牡", 0)
+    feature.sex = feature.sex.replace("牝", 1)
+    feature.sex = feature.sex.replace("セ", 2)
+
+    result = feature.pivot_table(values="order_of_finish", index="race_id", columns="popularity")
+    feature = feature.pivot_table(values=insi2, index="race_id", columns="popularity")
+
+
+    # テストデータとトレーニングデータを分離
+    func_1st = lambda x: 1 if x == 1 else 0
+    label = result.applymap(func_1st)
+
+    func_7th = lambda x: 1 if x.sum() == 0 else 0
+    label[7] = label.apply(func_7th, axis=1)
+
+    length_feature = len(feature)
+
+    train_data = feature[0:int(length_feature * traningdata_rate)]
+    train_label = label[0:int(length_feature * traningdata_rate)]
+
+    test_data = feature[int(length_feature * traningdata_rate + 1):length_feature]
+    test_label = label[int(length_feature * traningdata_rate + 1):length_feature]
 
     return train_data, train_label, test_data, test_label
