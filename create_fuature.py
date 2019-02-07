@@ -12,6 +12,7 @@ race_result = pd.read_csv("data/race_result.csv", encoding="Shift-JIS")
 # データ成形
 # 過去4回の勝率を追加
 feature["order_of_finish"] = race_result.order_of_finish
+feature["popularity"] = race_result.popularity
 feature = feature[feature.order_of_finish.isin(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13",
                                                 "14", "15", "16"])]
 feature.order_of_finish = feature.order_of_finish.apply(int)
@@ -87,7 +88,7 @@ feature_u = feature_u[['race_id', 'order_of_finish', 'horse_number', 'grade', 'h
                        'course', 'placeCode', 'headCount', 'preHeadCount', 'surfaceChanged',
                        'gradeChanged', 'preMargin', 'femaleOnly', 'avgTop3_4', 'avgWin4',
                        'preRaceWin', 'preRaceTop3', 'jAvgTop3_4', 'jAvgWin4',
-                       'avgSprate4', 'sumSprate4', 'preSprate', 'raceCnt', 'winCnt']]
+                       'avgSprate4', 'sumSprate4', 'preSprate', 'raceCnt', 'winCnt', 'popularity']]
 
 feature_u.to_csv("data/feature_update.csv", encoding="Shift-JIS", index=False)
 # %%
