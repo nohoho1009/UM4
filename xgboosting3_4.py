@@ -31,7 +31,7 @@ np.random.seed(1)
 
 params = {'objective': 'multi:softprob',
           'eval_metric': 'mlogloss',
-          'eta': 0.1,
+          'eta': 0.3,
           'num_class': 7}
 
 # 学習開始

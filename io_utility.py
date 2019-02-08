@@ -168,11 +168,14 @@ def ReadData_Race(traningdata_rate=0.9):
     label[7] = label.apply(func_7th, axis=1)
 
     length_feature = len(feature)
+    func_idmax = lambda x: int(x.idxmax() - 1)
 
     train_data = feature[0:int(length_feature * traningdata_rate)]
     train_label = label[0:int(length_feature * traningdata_rate)]
+    train_label = train_label.apply(func_idmax, axis=1)
 
     test_data = feature[int(length_feature * traningdata_rate + 1):length_feature]
     test_label = label[int(length_feature * traningdata_rate + 1):length_feature]
+    test_label = test_label.apply(func_idmax, axis=1)
 
     return train_data, train_label, test_data, test_label
