@@ -13,7 +13,7 @@ import pandas as pd
 # また購入の判定をオッズ　×　勝率で期待値を上回った場合に購入
 # 人気下位を学習データ、テストデータから排除
 
-# '0.4'
+
 # データ読み込みとクレンジング、特徴量の選択
 insi = ['horse_number', 'grade', 'odds',
         'jockey_id', 'trainer_id', 'age', 'dhweight', 'disRoc', 'distance',
@@ -29,7 +29,7 @@ train_data, train_label, test_data, test_label = io_utility.ReadData_WithoutLowP
 
 # %%
 # データセットの設定と学習時のハイパーパラメータ設定
-dm = lgb.Dataset(train_data.values, label=train_label.values)
+dm = lgb.Dataset(train_data, label=train_label.values)
 
 np.random.seed(1)
 
@@ -89,3 +89,17 @@ confusion_matrix(test_label, ypred)
 
 # 適合率
 precision_score(test_label, ypred)
+# %%
+# 各パラメータの重要度
+lgb.plot_importance(lgbm, figsize=(12, 6))
+plt.show()
+# %%
+
+cv_results = lgb.cv(params, dm, nfold=10)
+cv_logloss = cv_results['multi_logloss-mean']
+round_n = np.arange(len(cv_logloss))
+
+plt.xlabel('round')
+plt.ylabel('logloss')
+plt.plot(round_n, cv_logloss)
+plt.show()

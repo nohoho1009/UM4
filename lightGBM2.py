@@ -11,9 +11,7 @@ import pandas as pd
 
 # 2値分類ではなく勝率予想（1着になるか否か）に変更
 # また購入の判定をオッズ　×　勝率で期待値を上回った場合に購入
-# 人気下位を学習データ、テストデータから排除
 
-# '0.4'
 # データ読み込みとクレンジング、特徴量の選択
 insi = ['horse_number', 'grade', 'odds',
         'jockey_id', 'trainer_id', 'age', 'dhweight', 'disRoc', 'distance',
