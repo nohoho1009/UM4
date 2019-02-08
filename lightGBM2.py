@@ -1,6 +1,6 @@
 # %%
 import numpy as np
-import xgboost as xgb
+import lightgbm as lgb
 from sklearn import datasets
 import matplotlib.pyplot as plt
 import io_utility
@@ -11,11 +11,8 @@ import pandas as pd
 
 # 2値分類ではなく勝率予想（1着になるか否か）に変更
 # また購入の判定をオッズ　×　勝率で期待値を上回った場合に購入
-# xgboosting3で超高額馬券を購入しまくる時が多かったため、ある程度の勝率を持つものに購入を制限
 # 人気下位を学習データ、テストデータから排除
 
-
-xgb.__version__
 # '0.4'
 # データ読み込みとクレンジング、特徴量の選択
 insi = ['horse_number', 'grade', 'odds',
@@ -28,35 +25,30 @@ insi = ['horse_number', 'grade', 'odds',
         'preSprate', "avgSprate4_relative", "sumSprate4_relative", "jEps_relative", "eps_relative",
         "preSprate_relative", "winCnt_relative", "popularity"]
 
-train_data, train_label, test_data, test_label = io_utility.ReadData_WithoutLowPopularity(insi, traningdata_rate=0.9, max_popularity=6)
+train_data, train_label, test_data, test_label = io_utility.ReadData(insi, traningdata_rate=0.9)
 
 # %%
 # データセットの設定と学習時のハイパーパラメータ設定
-dm = xgb.DMatrix(train_data.values, label=train_label)
+dm = lgb.Dataset(train_data.values, label=train_label.values)
 
 np.random.seed(1)
 
-params = {'objective': 'multi:softprob',
-          'eval_metric': 'mlogloss',
-          'eta': 0.2,
-          'num_class': 2}
+params = {
+        'task': 'train',
+        'boosting_type': 'gbdt',
+        'objective': 'multiclass',
+        'metric': {'multi_logloss'},
+        'num_class': 2,
+        'learning_rate': 0.2,
+}
+
 
 # 学習開始
-bst = xgb.train(params, dm, num_boost_round=18)
+lgbm = lgb.train(params, dm, num_boost_round=18)
 # %%
 # テストデータ（2016/4～2017/4）で試す
-dm = xgb.DMatrix(test_data.values, label=test_label)
-ypred = pd.DataFrame(bst.predict(dm))
+ypred = pd.DataFrame(lgbm.predict(test_data.values, num_iteration=lgbm.best_iteration))
 # %%
-# 各特徴量の重要度をみる
-mapper = {'f{0}'.format(i): v for i, v in enumerate(insi)}
-mapped = {mapper[k]: v for k, v in bst.get_fscore().items()}
-mapped
-
-xgb.plot_importance(mapped)
-
-# %%
-# 答えと予想勝率を結合
 result = pd.concat([test_data, ypred, test_label], axis=1)
 result = result[["order_of_finish", "odds", 1]]
 result = result.rename(columns={"order_of_finish": "ans", 1: "predict"})
@@ -65,7 +57,7 @@ result = result.rename(columns={"order_of_finish": "ans", 1: "predict"})
 result["odds_predict"] = result.odds * result.predict
 
 # 予想勝率×オッズが一定値以上かつ予想勝率が一定値以上のとき買うもの（1とする）としたアルゴリズム
-func = lambda x: 1 if (x.predict > 0.3) & (x.odds_predict > 1.2) else 0
+func = lambda x: 1 if (x.predict > 0.3) & (x.odds_predict > 1.3) else 0
 result["pre2"] = result.apply(func, axis=1)
 
 # 購入回数

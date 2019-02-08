@@ -39,13 +39,8 @@ params = {
         'objective': 'multiclass',
         'metric': {'multi_logloss'},
         'num_class': 2,
-        'learning_rate': 0.1,
-        'num_leaves': 23,
-        'min_data_in_leaf': 1,
-        'num_iteration': 100,
-        'verbose': 0
+        'learning_rate': 0.2,
 }
-
 
 # 学習開始
 lgbm = lgb.train(params, dm, num_boost_round=18)
@@ -61,7 +56,7 @@ result = result.rename(columns={"order_of_finish": "ans", 1: "predict"})
 result["odds_predict"] = result.odds * result.predict
 
 # 予想勝率×オッズが一定値以上かつ予想勝率が一定値以上のとき買うもの（1とする）としたアルゴリズム
-func = lambda x: 1 if (x.predict > 0.3) & (x.odds_predict > 1.3) else 0
+func = lambda x: 1 if (x.predict > 0.3) & (x.odds_predict > 1.2) else 0
 result["pre2"] = result.apply(func, axis=1)
 
 # 購入回数
@@ -82,3 +77,15 @@ print("的中率")
 print(hitRate)
 print("回収率")
 print(returnRate)
+
+# %%
+ypred = pd.DataFrame(np.argmax(ypred.values,axis=1))
+
+# 正確度
+accu = accuracy_score(test_label, ypred)
+
+# 混同行列
+confusion_matrix(test_label, ypred)
+
+# 適合率
+precision_score(test_label, ypred)
